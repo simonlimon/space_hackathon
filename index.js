@@ -12,7 +12,7 @@ app.get('/screen', function(req, res){
     res.sendFile(__dirname + '/public/screen.html');
 });
 
-app.get('/controller', function(req, res){
+app.get('/', function(req, res){
     res.sendFile(__dirname + '/public/controller.html');
 });
 
