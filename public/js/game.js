@@ -114,7 +114,11 @@ function handlePadEvent(data) {
             firing[id] = true;
         else
             firing[id] = false;
-        console.log(id)
+
+        for (var rid in ships) {
+            console.log(rid)
+
+        }
 
     }
 
