@@ -5,14 +5,18 @@ function preload() {
 
     game.load.image('bullet', 'assets/bullets/bullet278.png');
     game.load.image('ship', 'assets/spaceships/destroyer.png');
-    game.load.image('background', 'assets/starstars.jpg')
-
+    game.load.image('background', 'assets/starstars.jpg');
+    game.load.image('asteroid1', 'assets/asteroid1.png');
+    game.load.spritesheet('kaboom', 'assets/explode.png', 128, 128);
 }
 
 
 var cursors;
 var fireButton;
 var s;
+var explosions;
+var firingTimer = 0;
+var asteroid;
 
 function create() {
     socket.emit("screen_connected");
@@ -38,7 +42,21 @@ function create() {
 
     socket.on('padEvent', function (data) {
         handlePadEvent(data);
-    })
+    });
+
+    // The asteroids
+    asteroids = game.add.group();
+    asteroids.enableBody = true;
+    asteroids.physicsBodyType = Phaser.Physics.ARCADE;
+    asteroids.createMultiple(30, 'asteroid1');
+    asteroids.setAll('anchor.x', 0.5);
+    asteroids.setAll('anchor.y', 1);
+    asteroids.setAll('outOfBoundsKill', true);
+    asteroids.setAll('checkWorldBounds', true);
+
+    // An explosion pool
+    explosions = game.add.group();
+    explosions.createMultiple(100, 'kaboom');
 }
 
 var ships = {};
@@ -85,7 +103,6 @@ function addShip(id) {
 }
 
 
-
 function handlePadEvent(data) {
     if (data['code'] == 0x130) {
         console.log('Fire!');
@@ -125,6 +142,39 @@ function update() {
     // game.world.wrap(sprite, 16);
 
 
+    game.world.wrap(ship, 16);
+
+    // run collision
+    for (var id in ships) {
+        game.physics.arcade.overlap(asteroids, ships[id], asteroidHitsShip, null, this);
+    }
+
+}
+
+function asteroidShooter () {
+
+    //  Grab the first bullet we can from the pool
+    asteroid = asteroids.getFirstExists(false);
+
+    if (asteroid)
+    {
+        asteroid.reset(game.rnd.integerInRange(0, game.width), game.rnd.integerInRange(0, game.height));
+
+        game.physics.arcade.moveToObject(asteroid,ship,120);
+        firingTimer = game.time.now + 2000;
+    }
+
+}
+
+function asteroidHitsShip (ship,asteroid) {
+
+    // create an explosion
+    var explosion = explosions.getFirstExists(false);
+    explosion.animations.add('kaboom');
+    explosion.reset(ship.body.x, ship.body.y);
+    explosion.play('kaboom', 30, false, true);
+
+    asteroid.kill();
 }
 
 function render() {
