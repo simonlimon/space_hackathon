@@ -141,11 +141,15 @@ function update() {
     //
     // game.world.wrap(sprite, 16);
 
+    if (game.time.now > firingTimer) {
+        asteroidShooter();
+    }
 
-    game.world.wrap(ship, 16);
 
     // run collision
     for (var id in ships) {
+        game.world.wrap(ships[id], 16);
+
         game.physics.arcade.overlap(asteroids, ships[id], asteroidHitsShip, null, this);
     }
 
@@ -160,7 +164,7 @@ function asteroidShooter () {
     {
         asteroid.reset(game.rnd.integerInRange(0, game.width), game.rnd.integerInRange(0, game.height));
 
-        game.physics.arcade.moveToObject(asteroid,ship,120);
+        game.physics.arcade.moveToXY(asteroid, game.rnd.integerInRange(0, game.width), game.rnd.integerInRange(0, game.height));
         firingTimer = game.time.now + 2000;
     }
 
