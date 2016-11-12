@@ -114,6 +114,7 @@ function handlePadEvent(data) {
             firing[id] = true;
         else
             firing[id] = false;
+        console.log(id)
 
     }
 
