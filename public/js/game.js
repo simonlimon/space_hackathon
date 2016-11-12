@@ -102,44 +102,55 @@ function addShip(id) {
     weapons[id] = weapon;
 }
 
-
+moving_right = {};
+moving_left = {};
+moving_forward = {};
+moving_back = {};
+firing = {};
 function handlePadEvent(data) {
+    var id = data['id'];
     if (data['code'] == 0x130) {
-        console.log('Fire!');
-        weapons[data['id']].fire()
+        if (data["value"] == 1)
+            firing[id] = true;
+        else
+            firing[id] = false;
+
+    }
+
+    if (data["type"] == 0x03) {
+        if (data["code"] == 0x00) {
+            if (data["value"] == 255) {
+                moving_right[id] = true
+            } else {
+                moving_right[id] = false
+            }
+
+            if (data["value"] == 0) {
+                moving_left[id] = true
+            } else {
+                moving_left[id] = false
+            }
+        }
+
+        if (data["code"] == 0x01) {
+            if (data["value"] == 255) {
+                moving_back[id] = true
+            } else {
+                moving_back[id] = false
+            }
+
+            if (data["value"] == 0) {
+                moving_forward[id] = true
+            } else {
+                moving_forward[id] = false
+            }
+        }
     }
 }
 
 var acceleration = 0;
 function update() {
-    // if (cursors.up.isDown)
-    // {
-    //     game.physics.arcade.accelerationFromRotation(sprite.rotation, 300, sprite.body.acceleration);
-    // }
-    // else
-    // {
-    //     sprite.body.acceleration.set(0);
-    // }
-    //
-    // if (cursors.left.isDown)
-    // {
-    //     sprite.body.angularVelocity = -300;
-    // }
-    // else if (cursors.right.isDown)
-    // {
-    //     sprite.body.angularVelocity = 300;
-    // }
-    // else
-    // {
-    //     sprite.body.angularVelocity = 0;
-    // }
-    //
-    // if (fireButton.isDown)
-    // {
-    //     weapon.fire();
-    // }
-    //
-    // game.world.wrap(sprite, 16);
+
 
     if (game.time.now > firingTimer) {
         asteroidShooter();
@@ -151,6 +162,38 @@ function update() {
         game.world.wrap(ships[id], 16);
 
         game.physics.arcade.overlap(asteroids, ships[id], asteroidHitsShip, null, this);
+
+        if (moving_forward[id])
+        {
+            game.physics.arcade.accelerationFromRotation(sprite.rotation, 300, sprite.body.acceleration);
+        } else if (moving_back[id])
+        {
+            game.physics.arcade.accelerationFromRotation(sprite.rotation, -300, sprite.body.acceleration);
+        } else
+        {
+            sprite.body.acceleration.set(0);
+        }
+
+
+        if (moving_left[id])
+        {
+            sprite.body.angularVelocity = -300;
+        }
+        else if (moving_right[id])
+        {
+            sprite.body.angularVelocity = 300;
+        }
+        else
+        {
+            sprite.body.angularVelocity = 0;
+        }
+
+        if (firing[id])
+        {
+            weapon.fire();
+        }
+
+        game.world.wrap(sprite, 16);
     }
 
 }
