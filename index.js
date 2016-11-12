@@ -3,7 +3,7 @@ var app = express();
 var http = require('http').Server(app);
 var screen;
 
-app.set('port', (process.env.PORT || 5000));
+app.set('port', (process.env.PORT || 4700));
 
 app.use(express.static('public'));
 

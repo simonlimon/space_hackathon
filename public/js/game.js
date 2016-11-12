@@ -160,7 +160,7 @@ function update() {
     for (var id in ships) {
         var sprite = ships[id];
         var weapon = weapons[id];
-        
+
         game.world.wrap(ships[id], 16);
 
         game.physics.arcade.overlap(asteroids, ships[id], asteroidHitsShip, null, this);
