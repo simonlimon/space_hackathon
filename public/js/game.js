@@ -4,11 +4,30 @@ var socket = io();
 function preload() {
 
     game.load.image('bullet', 'assets/bullets/bullet278.png');
-    game.load.image('ship', 'assets/spaceships/destroyer.png');
+    game.load.image('ship1', 'assets/spaceships/destroyer.png');
     game.load.image('background', 'assets/starstars.jpg');
     game.load.image('asteroid1', 'assets/asteroid1.png');
     game.load.image('powerup', 'assets/green.png');
     game.load.spritesheet('kaboom', 'assets/explode.png', 128, 128);
+    game.load.image('ship2', 'assets/spaceships/alien3.png');
+    game.load.image('ship3', 'assets/spaceships/aliensh.png');
+    game.load.image('ship4', 'assets/spaceships/blue1.png');
+    game.load.image('ship5', 'assets/spaceships/bluedestroyer.png');
+    game.load.image('ship6', 'assets/spaceships/cargoship.png');
+    game.load.image('ship7', 'assets/spaceships/greenship3.png');
+    game.load.image('ship8', 'assets/spaceships/mship1.png');
+    game.load.image('ship9', 'assets/spaceships/F5S4.png');
+    game.load.image('ship10', 'assets/spaceships/orangeship3.png');
+    game.load.image('ship11', 'assets/spaceships/roundysh-2.png');
+    game.load.image('ship12', 'assets/spaceships/roundysh.png');
+    game.load.image('ship13', 'assets/spaceships/rship.png');
+    game.load.image('ship14', 'assets/spaceships/shship.png');
+    game.load.image('ship15', 'assets/spaceships/smallorange.png');
+    game.load.image('ship16', 'assets/spaceships/spco.png');
+    game.load.image('ship17', 'assets/spaceships/wingship.png');
+    game.load.image('ship18', 'assets/spaceships/wship-4.png');
+    game.load.image('ship0', 'assets/spaceships/yelship.png');
+
 }
 
 
@@ -19,7 +38,9 @@ var explosions;
 var firingTimer = 0;
 var asteroid;
 var powerup;
-var maxhealth = 300;
+var maxhealth = 150;
+
+var shipTypes = {};
 
 function create() {
     socket.emit("screen_connected");
@@ -47,6 +68,11 @@ function create() {
         handlePadEvent(data);
     });
 
+
+    
+    for (var i = 0; i < 19 ; i ++) {
+        shipTypes[i] = 'ship'+i;
+    }
 
     // The asteroids
     asteroids = game.add.group();
@@ -88,9 +114,11 @@ function addShip(id) {
 
     weapon.bulletAngleOffset = 90;
 
-    sprite = game.add.sprite(game.width / 2, game.height - 50, 'ship');
+    var shipIm = shipTypes[game.rnd.integerInRange(0,18)];
+
+    sprite = game.add.sprite(game.width / 2, game.height - 50, shipIm);
     sprite.angle = -90;
-    sprite.scale.setTo(.3, .3);
+    sprite.scale.setTo(.5, .5);
 
     createHealth(sprite);
 
@@ -275,16 +303,16 @@ function getPowerUp (ship, powerup) {
 
 function createHealth(sprite){
 
-    var bmd = this.game.add.bitmapData(maxhealth, 30);
+    var bmd = this.game.add.bitmapData(maxhealth, 8);
     bmd.ctx.beginPath();
-    bmd.ctx.rect(0, 0, 300, 80);
+    bmd.ctx.rect(0, 0, maxhealth, 80);
     bmd.ctx.fillStyle = '#00f910';
     bmd.ctx.fill();
 
     this.widthLife = new Phaser.Rectangle(0, 0, bmd.width, bmd.height);
     this.totalLife = bmd.width;
 
-    var health = this.game.add.sprite(0 - this.game.world.centerX/2 - 50,  0- this.game.world.centerY/2 , bmd);
+    var health = this.game.add.sprite(0 - bmd.width/2,  0 - bmd.width/2, bmd);
     health.anchor.y = 0.5;
     health.cropEnabled = true;
     health.crop(this.widthLife);
