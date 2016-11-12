@@ -114,12 +114,6 @@ function handlePadEvent(data) {
             firing[id] = true;
         else
             firing[id] = false;
-
-        for (var rid in ships) {
-            console.log(rid)
-
-        }
-
     }
 
     if (data["type"] == 0x03) {
@@ -164,6 +158,8 @@ function update() {
 
     // run collision
     for (var id in ships) {
+        var sprite = ships[id];
+
         game.world.wrap(ships[id], 16);
 
         game.physics.arcade.overlap(asteroids, ships[id], asteroidHitsShip, null, this);
