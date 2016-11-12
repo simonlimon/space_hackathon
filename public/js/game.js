@@ -44,6 +44,7 @@ function create() {
         handlePadEvent(data);
     });
 
+
     // The asteroids
     asteroids = game.add.group();
     asteroids.enableBody = true;
@@ -84,6 +85,8 @@ function addShip(id) {
     sprite = game.add.sprite(game.width / 2, game.height - 50, 'ship');
     sprite.angle = -90;
     sprite.scale.setTo(.3, .3);
+
+    createHealth(sprite);
 
     sprite.anchor.set(0.5);
 
@@ -150,7 +153,6 @@ function update() {
     for (var id in ships) {
         game.world.wrap(ships[id], 16);
         game.physics.arcade.overlap(weapons[id].bullets, asteroids, bulletsHitAsteroid, null, this);
-
         game.physics.arcade.overlap(ships[id], asteroids, asteroidHitsShip, null, this);
     }
 
@@ -163,7 +165,7 @@ function asteroidShooter () {
 
     if (asteroid)
     {
-        // randomizes which edges of game astroids shoot from
+        // Randomize which edges of the game the astroids shoot from
         var edge = game.rnd.integerInRange(1,4);
         if (edge === 1) {
             asteroid.reset(game.rnd.integerInRange(0, game.width), game.rnd.integerInRange(-10, 0));
@@ -188,14 +190,63 @@ function asteroidHitsShip (ship,asteroid) {
     explosion.animations.add('kaboom');
     explosion.reset(ship.body.x, ship.body.y);
     explosion.play('kaboom', 30, false, true);
-
+    console.log(ship.health);
+    deplete(ship);
     asteroid.kill();
+
 }
 
 function bulletsHitAsteroid (bullets, asteroid) {
     console.log('collision!');
     bullets.kill();
     asteroid.kill();
+}
+
+function createHealth(sprite){
+    var bmd = this.game.add.bitmapData(300, 40);
+    bmd.ctx.beginPath();
+    bmd.ctx.rect(0, 0, 300, 80);
+    bmd.ctx.fillStyle = '#00685e';
+    bmd.ctx.fill();
+
+    bmd = this.game.add.bitmapData(280, 30);
+    bmd.ctx.beginPath();
+    bmd.ctx.rect(0, 0, 300, 80);
+    bmd.ctx.fillStyle = '#00f910';
+    bmd.ctx.fill();
+    
+    this.widthLife = new Phaser.Rectangle(0, 0, bmd.width, bmd.height);
+    this.totalLife = bmd.width;
+    
+    var health = this.game.add.sprite(0 - this.game.world.centerX/2 - 50,  0- this.game.world.centerY/2 , bmd);
+    health.anchor.y = 0.5;
+    health.cropEnabled = true;
+    health.crop(this.widthLife);
+    health.angle = 90;    
+    // game.time.events.loop(1500, cropLife, this);
+    sprite.addChild(health);
+
+  }
+
+  // decrease health
+  function deplete(sprite){
+    var newWidth = sprite.children[0].width - 20;
+    if (newWidth <= 0) {
+        sprite.children[0].kill();
+        sprite.kill();
+    } else {
+        sprite.children[0].width = newWidth;
+    }
+  };
+
+ // ????
+function cropLife(){
+    if(this.widthLife.width <= 0){
+      this.widthLife.width = this.totalLife;
+    }
+    else{
+      this.game.add.tween(this.widthLife).to( { width: (this.widthLife.width - (this.totalLife / 10)) }, 200, Phaser.Easing.Linear.None, true);
+    }
 }
 
 function render() {
