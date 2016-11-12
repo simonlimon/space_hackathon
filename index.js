@@ -15,11 +15,12 @@ app.get('/', function(req, res){
     res.sendFile(__dirname + '/public/controller.html');
 });
 
-app.listen(app.get('port'), function() {
+var server = app.listen(app.get('port'), function() {
     console.log('Node app is running on port', app.get('port'));
 });
 
-var io = require('socket.io')(http);
+
+var io = require('socket.io')(server);
 
 io.on('connection', function(socket){
     socket.on('disconnect', function() {
