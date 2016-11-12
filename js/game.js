@@ -4,15 +4,19 @@ function preload() {
 
     game.load.image('bullet', 'assets/bullets/bullet278.png');
     game.load.image('ship', 'assets/spaceships/destroyer.png');
-    game.load.image('background', 'assets/starstars.jpg')
-
+    game.load.image('background', 'assets/starstars.jpg');
+    game.load.image('asteroid1', 'assets/asteroid1.png');
+    game.load.spritesheet('kaboom', 'assets/explode.png', 128, 128);
 }
 
-var sprite;
+var ship;
 var weapon;
 var cursors;
 var fireButton;
 var s;
+var explosions;
+var firingTimer = 0;
+var asteroid;
 
 function create() {
     s = game.add.tileSprite(0, 0, game.width, game.height, 'background');
@@ -35,26 +39,40 @@ function create() {
 
     weapon.bulletAngleOffset = 90;
 
-    sprite = this.add.sprite(game.width / 2, game.height - 50, 'ship');
-    sprite.angle = -90;
-    sprite.scale.setTo(.3, .3);
+    ship = this.add.sprite(game.width / 2, game.height - 50, 'ship');
+    ship.angle = -90;
+    ship.scale.setTo(.3, .3);
 
-    sprite.anchor.set(0.5);
+    ship.anchor.set(0.5);
 
-    game.physics.arcade.enable(sprite);
+    game.physics.arcade.enable(ship);
 
-    sprite.body.drag.set(70);
-    sprite.body.maxVelocity.set(200);
+    ship.body.drag.set(70);
+    ship.body.maxVelocity.set(200);
 
     //  Tell the Weapon to track the 'player' Sprite
     //  With no offsets from the position
     //  But the 'true' argument tells the weapon to track sprite rotation
-    weapon.trackSprite(sprite, 0, 0, true);
+    weapon.trackSprite(ship, 0, 0, true);
     weapon.fireAngle = -90;
 
     cursors = this.input.keyboard.createCursorKeys();
 
     fireButton = this.input.keyboard.addKey(Phaser.KeyCode.SPACEBAR);
+
+     // The asteroids
+    asteroids = game.add.group();
+    asteroids.enableBody = true;
+    asteroids.physicsBodyType = Phaser.Physics.ARCADE;
+    asteroids.createMultiple(30, 'asteroid1');
+    asteroids.setAll('anchor.x', 0.5);
+    asteroids.setAll('anchor.y', 1);
+    asteroids.setAll('outOfBoundsKill', true);
+    asteroids.setAll('checkWorldBounds', true);
+
+    // An explosion pool
+    explosions = game.add.group();
+    explosions.createMultiple(100, 'kaboom');
 
 }
 
@@ -62,33 +80,68 @@ var acceleration = 0;
 function update() {
     if (cursors.up.isDown)
     {
-        game.physics.arcade.accelerationFromRotation(sprite.rotation, 300, sprite.body.acceleration);
+        game.physics.arcade.accelerationFromRotation(ship.rotation, 300, ship.body.acceleration);
     }
     else
     {
-        sprite.body.acceleration.set(0);
+        ship.body.acceleration.set(0);
     }
 
     if (cursors.left.isDown)
     {
-        sprite.body.angularVelocity = -300;
+        ship.body.angularVelocity = -300;
     }
     else if (cursors.right.isDown)
     {
-        sprite.body.angularVelocity = 300;
+        ship.body.angularVelocity = 300;
     }
     else
     {
-        sprite.body.angularVelocity = 0;
+        ship.body.angularVelocity = 0;
     }
 
     if (fireButton.isDown)
     {
         weapon.fire();
     }
+    if (game.time.now > firingTimer)
+    {
+        asteroidShooter();
+    }
 
-    game.world.wrap(sprite, 16);
 
+    game.world.wrap(ship, 16);
+
+    // run collision
+    game.physics.arcade.overlap(asteroids, ship, asteroidHitsShip, null, this);
+
+
+}
+
+function asteroidShooter () {
+
+    //  Grab the first bullet we can from the pool
+    asteroid = asteroids.getFirstExists(false);
+
+    if (asteroid)
+    {   
+        asteroid.reset(game.rnd.integerInRange(0, game.width), game.rnd.integerInRange(0, game.height));
+
+        game.physics.arcade.moveToObject(asteroid,ship,120);
+        firingTimer = game.time.now + 2000;
+    }
+
+}
+
+function asteroidHitsShip (ship,asteroid) {
+
+    // create an explosion
+    var explosion = explosions.getFirstExists(false);
+    explosion.animations.add('kaboom');
+    explosion.reset(ship.body.x, ship.body.y);
+    explosion.play('kaboom', 30, false, true);
+
+    asteroid.kill();
 }
 
 function render() {
