@@ -7,6 +7,7 @@ function preload() {
     game.load.image('ship', 'assets/spaceships/destroyer.png');
     game.load.image('background', 'assets/starstars.jpg');
     game.load.image('asteroid1', 'assets/asteroid1.png');
+    game.load.image('powerup', 'assets/green.png');
     game.load.spritesheet('kaboom', 'assets/explode.png', 128, 128);
 }
 
@@ -17,6 +18,8 @@ var s;
 var explosions;
 var firingTimer = 0;
 var asteroid;
+var powerup;
+var maxhealth = 300;
 
 function create() {
     socket.emit("screen_connected");
@@ -58,6 +61,9 @@ function create() {
     // An explosion pool
     explosions = game.add.group();
     explosions.createMultiple(100, 'kaboom');
+
+    powerup = game.add.sprite(game.rnd.integerInRange(50, game.width-50), game.rnd.integerInRange(50, game.height-50), 'powerup');
+    game.physics.arcade.enable(powerup);
 }
 
 var ships = {};
@@ -201,8 +207,15 @@ function update() {
         game.physics.arcade.overlap(asteroids, sprite, asteroidHitsShip, null, this);
         game.physics.arcade.overlap(weapon.bullets, asteroids, bulletsHitAsteroid, null, this);
         game.physics.arcade.overlap(sprite, asteroids, asteroidHitsShip, null, this);
-    }
+        game.physics.arcade.overlap(sprite, powerup, getPowerUp, null, this);
 
+        for (var key in weapons) {
+            if (id != key) {
+                var weapon = weapons[key];
+                game.physics.arcade.overlap(sprite, weapon.bullets, shipWasShot, null, this);
+            }
+        }
+    }
 }
 
 function asteroidShooter () {
@@ -249,14 +262,20 @@ function bulletsHitAsteroid (bullets, asteroid) {
     asteroid.kill();
 }
 
-function createHealth(sprite){
-    var bmd = this.game.add.bitmapData(300, 40);
-    bmd.ctx.beginPath();
-    bmd.ctx.rect(0, 0, 300, 80);
-    bmd.ctx.fillStyle = '#00685e';
-    bmd.ctx.fill();
+function shipWasShot(ship, bullets) {
+    bullets.kill();
+    depleteBull(ship);
+}
 
-    bmd = this.game.add.bitmapData(280, 30);
+function getPowerUp (ship, powerup) {
+    console.log('HEYYY');
+    increase(ship);
+    powerup.reset(game.rnd.integerInRange(50, game.width-50), game.rnd.integerInRange(50, game.height-50));
+}
+
+function createHealth(sprite){
+
+    var bmd = this.game.add.bitmapData(maxhealth, 30);
     bmd.ctx.beginPath();
     bmd.ctx.rect(0, 0, 300, 80);
     bmd.ctx.fillStyle = '#00f910';
@@ -277,10 +296,31 @@ function createHealth(sprite){
 
   // decrease health
   function deplete(sprite){
-    var newWidth = sprite.children[0].width - 20;
+    var newWidth = sprite.children[0].width - (maxhealth/5);
     if (newWidth <= 0) {
         sprite.children[0].kill();
         sprite.kill();
+    } else {
+        sprite.children[0].width = newWidth;
+    }
+  };
+
+    // decrease health for bullet
+  function depleteBull(sprite){
+    var newWidth = sprite.children[0].width - (maxhealth/10);
+    if (newWidth <= 0) {
+        sprite.children[0].kill();
+        sprite.kill();
+    } else {
+        sprite.children[0].width = newWidth;
+    }
+  };
+
+    // increase health
+  function increase(sprite){
+    var newWidth = sprite.children[0].width + (maxhealth/5);
+    if (newWidth >= maxhealth) {
+        sprite.children[0].width = maxhealth;
     } else {
         sprite.children[0].width = newWidth;
     }
