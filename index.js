@@ -4,6 +4,8 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var screen;
 
+app.set('port', (process.env.PORT || 5000));
+
 app.use(express.static('public'))
 
 app.get('/screen', function(req, res){
@@ -12,6 +14,10 @@ app.get('/screen', function(req, res){
 
 app.get('/controller', function(req, res){
     res.sendFile(__dirname + '/public/controller.html');
+});
+
+app.listen(app.get('port'), function() {
+    console.log('Node app is running on port', app.get('port'));
 });
 
 io.on('connection', function(socket){
@@ -40,6 +46,6 @@ io.on('connection', function(socket){
     });
 });
 
-http.listen(4700, function(){
-    console.log('listening on *:4700');
-});
+// http.listen(4700, function(){
+//     console.log('listening on *:4700');
+// });
