@@ -149,8 +149,9 @@ function update() {
     // run collision
     for (var id in ships) {
         game.world.wrap(ships[id], 16);
+        game.physics.arcade.overlap(weapons[id].bullets, asteroids, bulletsHitAsteroid, null, this);
 
-        game.physics.arcade.overlap(asteroids, ships[id], asteroidHitsShip, null, this);
+        game.physics.arcade.overlap(ships[id], asteroids, asteroidHitsShip, null, this);
     }
 
 }
@@ -162,10 +163,20 @@ function asteroidShooter () {
 
     if (asteroid)
     {
-        asteroid.reset(game.rnd.integerInRange(0, game.width), game.rnd.integerInRange(0, game.height));
+        // randomizes which edges of game astroids shoot from
+        var edge = game.rnd.integerInRange(1,4);
+        if (edge === 1) {
+            asteroid.reset(game.rnd.integerInRange(0, game.width), game.rnd.integerInRange(-10, 0));
+        } else if (edge == 2) {
+            asteroid.reset(game.rnd.integerInRange(game.width, game.width+10), game.rnd.integerInRange(0, game.height));
+        } else if (edge == 3) {
+            asteroid.reset(game.rnd.integerInRange(0, game.width), game.rnd.integerInRange(game.height, game.height+10));
+        } else {
+            asteroid.reset(game.rnd.integerInRange(-10, 0), game.rnd.integerInRange(0, game.height));
+        }
 
         game.physics.arcade.moveToXY(asteroid, game.rnd.integerInRange(0, game.width), game.rnd.integerInRange(0, game.height));
-        firingTimer = game.time.now + 2000;
+        firingTimer = game.time.now + 1000;
     }
 
 }
@@ -178,6 +189,12 @@ function asteroidHitsShip (ship,asteroid) {
     explosion.reset(ship.body.x, ship.body.y);
     explosion.play('kaboom', 30, false, true);
 
+    asteroid.kill();
+}
+
+function bulletsHitAsteroid (bullets, asteroid) {
+    console.log('collision!');
+    bullets.kill();
     asteroid.kill();
 }
 
